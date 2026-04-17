@@ -22,8 +22,4 @@ class HexCell(BaseModel):
 
     @model_serializer
     def serialize(self):
-        return [
-            self.h_index,
-            self.level,
-            self.cell_id,
-        ]
+        return [self.h_index, self.level, self.cell_id]
