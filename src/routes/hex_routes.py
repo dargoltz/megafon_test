@@ -1,4 +1,5 @@
-from fastapi import APIRouter
+import h3
+from fastapi import APIRouter, Query, HTTPException
 
 from ..service import get_inner_cells, get_avg_cells_in_resolution
 
@@ -14,7 +15,7 @@ async def get_hex(hex: str):
 
 
 @hex_router.get("/avg")
-async def get_hex_avg(resolution: int):
+async def get_hex_avg(resolution: int = Query(ge=0, lt=15)):
     return get_avg_cells_in_resolution(resolution)
 
 
