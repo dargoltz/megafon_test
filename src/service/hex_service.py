@@ -7,6 +7,8 @@ from ..core import cells_storage
 from ..models import HexCell
 
 
+# Текущая реализация подразумевает, что в ячейку большего разрешения не может целиком вместиться ни одна ячейка
+# исходного разрешения
 def get_inner_cells(h: str) -> list[HexCell]:
     resolution = h3.get_resolution(h)
 
@@ -51,4 +53,3 @@ def get_cells_in_current_resolution(resolution: int) -> set[str]:
             cells_in_current_resolution.update(children)
 
         return cells_in_current_resolution
-
