@@ -1,9 +1,9 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from .hexes_storage import hexes_storage
+from .hexes_storage import cells_storage
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    hexes_storage.setup()
+    cells_storage.setup()
     yield
