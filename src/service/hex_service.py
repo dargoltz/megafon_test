@@ -1,6 +1,5 @@
 import math
 import statistics
-from collections import defaultdict
 
 import h3
 
@@ -22,19 +21,17 @@ def get_inner_cells(h: str) -> list[HexCell]:
         return [HexCell(h_index=c) for c in found_cells]
 
 
-def get_avg_cells_in_resolution(resolution: int) -> dict[int, list[HexCell]]:
+# В условии задания говорилось о группировке по cell_id
+# Текущая реализация ориентирована на формат вывода из задания, что больше напоминает сортировку
+def get_avg_cells_in_resolution(resolution: int) -> list[HexCell]:
     cells_in_current_resolution = get_cells_in_current_resolution(resolution)
     hex_cells = [HexCell(h_index=h) for h in cells_in_current_resolution]
 
     median = math.floor(statistics.median([hc.level for hc in hex_cells]))
     filtered_by_median = [hc for hc in hex_cells if hc.level == median]
+    filtered_by_median.sort(key=lambda hc: hc.cell_id)
 
-    grouped_by_cell_id = defaultdict(list)
-
-    for hc in filtered_by_median:
-        grouped_by_cell_id[hc.cell_id].append(hc)
-
-    return grouped_by_cell_id
+    return filtered_by_median
 
 
 def get_cells_in_current_resolution(resolution: int) -> set[str]:
