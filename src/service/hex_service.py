@@ -3,6 +3,7 @@ import statistics
 
 import h3
 
+from ..core import app_config
 from ..core import cells_storage
 from ..models import HexCell
 
@@ -12,12 +13,12 @@ from ..models import HexCell
 def get_inner_cells(h: str) -> list[HexCell]:
     resolution = h3.get_resolution(h)
 
-    if resolution > cells_storage.RES:
+    if resolution > app_config.BASE_RESOLUTION:
         return []
-    elif resolution == cells_storage.RES:
+    elif resolution == app_config.BASE_RESOLUTION:
         return [HexCell(h_index=h)] if h in cells_storage.cells else []
     else:
-        children_cells = set(h3.cell_to_children(h, cells_storage.RES))
+        children_cells = set(h3.cell_to_children(h, app_config.BASE_RESOLUTION))
         found_cells = children_cells & cells_storage.cells
 
         return [HexCell(h_index=c) for c in found_cells]
@@ -37,12 +38,12 @@ def get_avg_cells_in_resolution(resolution: int) -> list[HexCell]:
 
 
 def get_cells_in_current_resolution(resolution: int) -> set[str]:
-    if resolution < cells_storage.RES:
+    if resolution < app_config.BASE_RESOLUTION:
         return {
             h3.cell_to_parent(h, resolution)
             for h in cells_storage.cells
         }
-    elif resolution == cells_storage.RES:
+    elif resolution == app_config.BASE_RESOLUTION:
         return cells_storage.cells
     else:
         cells_in_current_resolution = set()
