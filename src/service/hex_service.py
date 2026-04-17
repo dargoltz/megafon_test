@@ -4,16 +4,11 @@ from collections import defaultdict
 
 import h3
 
-from fastapi import HTTPException
-
 from ..core import cells_storage
 from ..models import HexCell
 
 
 def get_inner_cells(h: str) -> list[HexCell]:
-    if not h3.is_valid_cell(h):
-        raise HTTPException(status_code=400, detail="Invalid h3 index")
-
     resolution = h3.get_resolution(h)
 
     if resolution > cells_storage.RES:

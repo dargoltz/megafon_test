@@ -7,6 +7,9 @@ hex_router = APIRouter()
 
 @hex_router.get("/hex")
 async def get_hex(hex: str):
+    if not h3.is_valid_cell(hex):
+        raise HTTPException(status_code=400, detail="Invalid h3 index")
+
     return get_inner_cells(hex)
 
 
