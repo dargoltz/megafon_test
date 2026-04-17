@@ -4,7 +4,7 @@ import statistics
 import h3
 
 from ..core import app_config
-from ..core import cells_storage
+from ..storage import cells_storage
 from ..models import HexCell
 
 

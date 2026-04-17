@@ -1,1 +1,1 @@
-from .hex_service import get_inner_cells, get_avg_cells_in_resolution
+from .hex_methods import get_inner_cells, get_avg_cells_in_resolution

@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from .hexes_storage import cells_storage
+from ..storage import cells_storage
 
 
 @asynccontextmanager

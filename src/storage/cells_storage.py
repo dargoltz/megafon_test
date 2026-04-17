@@ -1,6 +1,6 @@
 import h3
 
-from .config import app_config
+from src.core.config import app_config
 
 
 class CellsStorage:
