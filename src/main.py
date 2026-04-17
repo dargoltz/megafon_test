@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+
+from .routes import hex_router
+
 app = FastAPI()
 
 app.add_middleware(
@@ -11,6 +14,4 @@ app.add_middleware(
     allow_headers = ["*"],
 )
 
-@app.get("/")
-async def root():
-    return {"message": "ok"}
+app.include_router(hex_router)
