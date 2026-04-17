@@ -1,0 +1,62 @@
+import math
+import statistics
+from collections import defaultdict
+
+import h3
+
+from fastapi import HTTPException
+
+from ..core import cells_storage
+from ..models import HexCell
+
+
+def get_inner_cells(h: str) -> list[HexCell]:
+    if not h3.is_valid_cell(h):
+        raise HTTPException(status_code=400, detail="Invalid h3 index")
+
+    resolution = h3.get_resolution(h)
+
+    if resolution > cells_storage.RES:
+        return []
+    elif resolution == cells_storage.RES:
+        return [HexCell(h_index=h)] if h in cells_storage.cells else []
+    else:
+        children_cells = set(h3.cell_to_children(h, cells_storage.RES))
+        found_cells = children_cells & cells_storage.cells
+
+        return [HexCell(h_index=c) for c in found_cells]
+
+
+def get_avg_cells_in_resolution(resolution: int) -> dict[int, list[HexCell]]:
+    cells_in_current_resolution = get_cells_in_current_resolution(resolution)
+    hex_cells = [HexCell(h_index=h) for h in cells_in_current_resolution]
+
+    median = math.floor(statistics.median([hc.level for hc in hex_cells]))
+    filtered_by_median = [hc for hc in hex_cells if hc.level == median]
+
+    grouped_by_cell_id = defaultdict(list)
+
+    for hc in filtered_by_median:
+        grouped_by_cell_id[hc.cell_id].append(hc)
+
+    return grouped_by_cell_id
+
+
+def get_cells_in_current_resolution(resolution: int) -> set[str]:
+    if resolution < cells_storage.RES:
+        return {
+            h3.cell_to_parent(h, resolution)
+            for h in cells_storage.cells
+        }
+    elif resolution == cells_storage.RES:
+        return cells_storage.cells
+    else:
+        cells_in_current_resolution = set()
+
+        for h in cells_storage.cells:
+            children = h3.cell_to_children(h, resolution)
+
+            cells_in_current_resolution.update(children)
+
+        return cells_in_current_resolution
+
