@@ -22,4 +22,5 @@ class CellsStorage:
         self.cells = cells_in_area
 
 
+# Работаем с одним инстансом чтобы не вычислять их постоянно
 cells_storage = CellsStorage()
