@@ -1,8 +1,17 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
+from .core import lifespan
+from .routes import hex_router
 
+app = FastAPI(lifespan=lifespan)
 
-@app.get("/")
-async def root():
-    return {"message": "ok"}
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(hex_router)
