@@ -1,7 +1,8 @@
 import h3
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, Query, HTTPException, Depends
 
-from ..service import get_inner_cells, get_avg_cells_in_resolution
+from ..core import parse_borders
+from ..service import get_inner_cells, get_avg_cells_in_resolution, get_cells_in_bbox, get_cells_in_bbox_kml
 
 hex_router = APIRouter()
 
@@ -20,10 +21,16 @@ async def get_hex_avg(resolution: int = Query(ge=0, lt=15)):
 
 
 @hex_router.get("/bbox")
-async def get_in_bbox():
-    ...  # todo
+async def get_in_bbox(borders=Depends(parse_borders)):
+    if len(borders) < 3:
+        raise HTTPException(status_code=400, detail="Need at least 3 borders")
+
+    return get_cells_in_bbox(borders)
 
 
 @hex_router.get("/bbox_kml")
-async def get_in_bbox_kml():
-    ...  # todo
+async def get_in_bbox_kml(borders=Depends(parse_borders)):
+    if len(borders) < 3:
+        raise HTTPException(status_code=400, detail="Need at least 3 borders")
+
+    return get_cells_in_bbox_kml(borders)
