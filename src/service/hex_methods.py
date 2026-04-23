@@ -1,6 +1,7 @@
 import datetime
 import math
 import statistics
+from collections import defaultdict
 
 import h3
 from shapely.geometry import Polygon
@@ -22,10 +23,12 @@ def get_inner_cells(h: str) -> list[HexCell]:
     elif resolution == app_config.BASE_RESOLUTION:
         return [HexCell(h_index=h)] if h in cells_storage.cells else []
     else:
-        children_cells = set(h3.cell_to_children(h, app_config.BASE_RESOLUTION))
-        found_cells = children_cells & cells_storage.cells
+        parent_cells = defaultdict(list)
 
-        return [HexCell(h_index=c) for c in found_cells]
+        for cell in cells_storage.cells:
+            parent_cells[h3.cell_to_parent(cell, resolution)].append(cell)
+
+        return [HexCell(h_index=c) for c in parent_cells[h]]
 
 
 # В условии задания говорилось о группировке по cell_id
