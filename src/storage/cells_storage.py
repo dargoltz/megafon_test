@@ -16,7 +16,10 @@ class CellsStorage:
 
         cells_in_area = {
             h for h in grid_disk
-            if h3.great_circle_distance(h3.cell_to_latlng(center), h3.cell_to_latlng(h)) < app_config.BASE_RADIUS_KM
+            if h3.great_circle_distance(
+                (app_config.CENTER_LAT, app_config.CENTER_LON),
+                h3.cell_to_latlng(h)
+            ) < app_config.BASE_RADIUS_KM
         }
 
         self.cells = cells_in_area
