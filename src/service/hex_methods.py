@@ -82,7 +82,7 @@ def get_cells_in_bbox(borders: list[tuple[float, float]]) -> list[HexCell]:
     return [HexCell(h_index=h) for h in cells_in_poly]
 
 
-def get_cells_in_bbox_kml(borders: list[tuple[float, float]]):
+def get_cells_in_bbox_kml(borders: list[tuple[float, float]]) -> simplekml.Kml:
     cells_in_bbox = get_cells_in_bbox(borders)
     kml = simplekml.Kml()
 
@@ -98,10 +98,4 @@ def get_cells_in_bbox_kml(borders: list[tuple[float, float]]):
             description=f"level={c.level}, cell_id={c.cell_id}",
         )
 
-    return Response(
-        content=kml.kml(),
-        media_type="application/vnd.google-earth.kml+xml",
-        headers={
-            f"Content-Disposition": f'attachment; filename="{datetime.datetime.now()}.kml"'
-        }
-    )
+    return kml
