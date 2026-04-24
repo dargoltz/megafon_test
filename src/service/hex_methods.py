@@ -3,17 +3,14 @@ import statistics
 from collections import defaultdict
 
 import h3
+from simplekml import Kml
 from shapely.geometry import Polygon
-import simplekml
-from fastapi import Response
 
 from ..core import app_config
 from ..storage import cells_storage
 from ..models import HexCell
 
 
-# Текущая реализация подразумевает, что в ячейку большего разрешения не может целиком вместиться ни одна ячейка
-# исходного разрешения
 def get_inner_cells(h: str) -> list[HexCell]:
     resolution = h3.get_resolution(h)
 
@@ -60,9 +57,9 @@ def get_cells_in_bbox(borders: list[tuple[float, float]]) -> list[HexCell]:
     return [HexCell(h_index=h) for h in cells_in_poly]
 
 
-def get_cells_in_bbox_kml(borders: list[tuple[float, float]]) -> simplekml.Kml:
+def get_cells_in_bbox_kml(borders: list[tuple[float, float]]) -> Kml:
     cells_in_bbox = get_cells_in_bbox(borders)
-    kml = simplekml.Kml()
+    kml = Kml()
 
     for c in cells_in_bbox:
         boundary = list(h3.cell_to_boundary(c.h_index))
