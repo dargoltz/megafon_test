@@ -1,19 +1,16 @@
-import datetime
 import math
 import statistics
+from collections import defaultdict
 
 import h3
+from simplekml import Kml
 from shapely.geometry import Polygon
-import simplekml
-from fastapi import Response
 
 from ..core import app_config
 from ..storage import cells_storage
 from ..models import HexCell
 
 
-# Текущая реализация подразумевает, что в ячейку большего разрешения не может целиком вместиться ни одна ячейка
-# исходного разрешения
 def get_inner_cells(h: str) -> list[HexCell]:
     resolution = h3.get_resolution(h)
 
@@ -22,55 +19,36 @@ def get_inner_cells(h: str) -> list[HexCell]:
     elif resolution == app_config.BASE_RESOLUTION:
         return [HexCell(h_index=h)] if h in cells_storage.cells else []
     else:
-        children_cells = set(h3.cell_to_children(h, app_config.BASE_RESOLUTION))
-        found_cells = children_cells & cells_storage.cells
+        parent_cells = defaultdict(list)
 
-        return [HexCell(h_index=c) for c in found_cells]
+        for cell in cells_storage.cells:
+            parent_cells[h3.cell_to_parent(cell, resolution)].append(cell)
 
-
-# В условии задания говорилось о группировке по cell_id
-# Текущая реализация ориентирована на формат вывода из задания, что больше напоминает сортировку
-def get_avg_cells_in_resolution(resolution: int) -> list[HexCell]:
-    cells_in_current_resolution = get_cells_in_current_resolution(resolution)
-    hex_cells = [HexCell(h_index=h) for h in cells_in_current_resolution]
-
-    median = math.floor(statistics.median([hc.level for hc in hex_cells]))
-    filtered_by_median = [hc for hc in hex_cells if hc.level == median]
-    filtered_by_median.sort(key=lambda hc: hc.cell_id)
-
-    return filtered_by_median
+        return [HexCell(h_index=c) for c in parent_cells[h]]
 
 
-def get_cells_in_current_resolution(resolution: int) -> set[str]:
-    if resolution < app_config.BASE_RESOLUTION:
-        return {
-            h3.cell_to_parent(h, resolution)
-            for h in cells_storage.cells
-        }
-    elif resolution == app_config.BASE_RESOLUTION:
-        return cells_storage.cells
-    else:
-        cells_in_current_resolution = set()
+def get_avg_cells_in_resolution(resolution: int):
+    groups = defaultdict(list)
 
-        for h in cells_storage.cells:
-            children = h3.cell_to_children(h, resolution)
+    for h in cells_storage.cells:
+        hc = HexCell(h_index=h)
+        groups[(h3.cell_to_parent(h, resolution), hc.cell_id)].append(hc)
 
-            cells_in_current_resolution.update(children)
+    result = []
 
-        return cells_in_current_resolution
+    for group, hex_cells in groups.items():
+        h, cell_id = group
+        median = math.floor(statistics.median([h.level for h in hex_cells]))
+        result.append([h, median, cell_id])
+
+    return sorted(result, key=lambda r: r[2])
 
 
 def get_cells_in_bbox(borders: list[tuple[float, float]]) -> list[HexCell]:
-    h3poly = h3.LatLngPoly(borders)
-    cells = set(h3.h3shape_to_cells(h3poly, app_config.BASE_RESOLUTION)) & cells_storage.cells
-
-    if not cells:
-        return []
-
     poly = Polygon([(lon, lat) for lat, lon in borders])
     cells_in_poly = []
 
-    for h in cells:
+    for h in cells_storage.cells:
         cell_poly = Polygon([(lon, lat) for lat, lon in h3.cell_to_boundary(h)])
 
         if poly.contains(cell_poly):
@@ -79,9 +57,9 @@ def get_cells_in_bbox(borders: list[tuple[float, float]]) -> list[HexCell]:
     return [HexCell(h_index=h) for h in cells_in_poly]
 
 
-def get_cells_in_bbox_kml(borders: list[tuple[float, float]]):
+def get_cells_in_bbox_kml(borders: list[tuple[float, float]]) -> Kml:
     cells_in_bbox = get_cells_in_bbox(borders)
-    kml = simplekml.Kml()
+    kml = Kml()
 
     for c in cells_in_bbox:
         boundary = list(h3.cell_to_boundary(c.h_index))
@@ -95,10 +73,4 @@ def get_cells_in_bbox_kml(borders: list[tuple[float, float]]):
             description=f"level={c.level}, cell_id={c.cell_id}",
         )
 
-    return Response(
-        content=kml.kml(),
-        media_type="application/vnd.google-earth.kml+xml",
-        headers={
-            f"Content-Disposition": f'attachment; filename="{datetime.datetime.now()}.kml"'
-        }
-    )
+    return kml
