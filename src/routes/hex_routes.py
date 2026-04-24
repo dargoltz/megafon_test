@@ -2,7 +2,7 @@ import h3
 import datetime
 from fastapi import APIRouter, Query, HTTPException, Depends, Response
 
-from ..core import parse_borders
+from ..core import parse_borders, app_config
 from ..service import get_inner_cells, get_avg_cells_in_resolution, get_cells_in_bbox, get_cells_in_bbox_kml
 
 hex_router = APIRouter()
@@ -17,7 +17,7 @@ async def get_hex(hex: str):
 
 
 @hex_router.get("/avg")
-async def get_hex_avg(resolution: int = Query(ge=0, lt=15)):
+async def get_hex_avg(resolution: int = Query(ge=0, le=app_config.BASE_RESOLUTION)):
     return get_avg_cells_in_resolution(resolution)
 
 

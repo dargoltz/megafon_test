@@ -1,4 +1,3 @@
-import datetime
 import math
 import statistics
 from collections import defaultdict
@@ -31,36 +30,21 @@ def get_inner_cells(h: str) -> list[HexCell]:
         return [HexCell(h_index=c) for c in parent_cells[h]]
 
 
-# В условии задания говорилось о группировке по cell_id
-# Текущая реализация ориентирована на формат вывода из задания, что больше напоминает сортировку
-def get_avg_cells_in_resolution(resolution: int) -> list[HexCell]:
-    cells_in_current_resolution = get_cells_in_current_resolution(resolution)
-    hex_cells = [HexCell(h_index=h) for h in cells_in_current_resolution]
+def get_avg_cells_in_resolution(resolution: int):
+    groups = defaultdict(list)
 
-    median = math.floor(statistics.median([hc.level for hc in hex_cells]))
-    filtered_by_median = [hc for hc in hex_cells if hc.level == median]
-    filtered_by_median.sort(key=lambda hc: hc.cell_id)
+    for h in cells_storage.cells:
+        hc = HexCell(h_index=h)
+        groups[(h3.cell_to_parent(h, resolution), hc.cell_id)].append(hc)
 
-    return filtered_by_median
+    result = []
 
+    for group, hex_cells in groups.items():
+        h, cell_id = group
+        median = math.floor(statistics.median([h.level for h in hex_cells]))
+        result.append([h, median, cell_id])
 
-def get_cells_in_current_resolution(resolution: int) -> set[str]:
-    if resolution < app_config.BASE_RESOLUTION:
-        return {
-            h3.cell_to_parent(h, resolution)
-            for h in cells_storage.cells
-        }
-    elif resolution == app_config.BASE_RESOLUTION:
-        return cells_storage.cells
-    else:
-        cells_in_current_resolution = set()
-
-        for h in cells_storage.cells:
-            children = h3.cell_to_children(h, resolution)
-
-            cells_in_current_resolution.update(children)
-
-        return cells_in_current_resolution
+    return sorted(result, key=lambda r: r[2])
 
 
 def get_cells_in_bbox(borders: list[tuple[float, float]]) -> list[HexCell]:
