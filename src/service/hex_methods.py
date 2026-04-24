@@ -48,16 +48,10 @@ def get_avg_cells_in_resolution(resolution: int):
 
 
 def get_cells_in_bbox(borders: list[tuple[float, float]]) -> list[HexCell]:
-    h3poly = h3.LatLngPoly(borders)
-    cells = set(h3.h3shape_to_cells(h3poly, app_config.BASE_RESOLUTION)) & cells_storage.cells
-
-    if not cells:
-        return []
-
     poly = Polygon([(lon, lat) for lat, lon in borders])
     cells_in_poly = []
 
-    for h in cells:
+    for h in cells_storage.cells:
         cell_poly = Polygon([(lon, lat) for lat, lon in h3.cell_to_boundary(h)])
 
         if poly.contains(cell_poly):
